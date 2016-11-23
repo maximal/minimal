@@ -69,14 +69,6 @@
 		
 		request.open(method || 'GET', url);
 
-		if (params.onLoad) {
-			request.onload = params.onLoad;
-		}
-
-		if (params.onError) {
-			request.onerror = params.onError;
-		}
-
 		request.onreadystatechange = function () {
 			if (request.readyState === 4) {
 				if (callback) {
