@@ -37,8 +37,10 @@
 				}
 				elements[i].addEventListener(eventName, callback);
 			}
-		} else {
+		} else if (elements !== null) {
 			elements.addEventListener(eventName, callback);
+		} else {
+			console.info('Info: no element for `' + eventName + '`event.');
 		}
 		// TODO: Может, сделать возможность передавать строку и сразу искать элементы?
 		// Кешировать селекторы, чи ну его?
