@@ -52,16 +52,13 @@
 	 * @author MaximAL
 	 * @author McTep
 	 */
-	function ajax(url, params, callback) {
+	function ajax(url, _params, _callback) {
 		if (!url) {
 			throw new Error('Error: `url` parameter is required!');
 		}
 
-		params = params || {};
-
-		if (params instanceof Function) {
-			callback = params;
-		}
+		var params = _params instanceof Object ? _params : {};
+		var callback = _params instanceof Function ? _params : (_callback || function() {});
 
 		var request = new XMLHttpRequest();
 
