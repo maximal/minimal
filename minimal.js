@@ -54,54 +54,51 @@
 	 * @author MaximAL
 	 * @author McTep
 	 */
-	function ajax(url, params, callback) {
+	function ajax(url, _params, _callback) {
 		if (!url) {
 			throw new Error('Error: `url` parameter is required!');
 		}
 
-		params = params || {};
-
-		if (params instanceof Function) {
-			callback = params;
-		}
+		var params = _params instanceof Object ? _params : {};
+		var callback = _params instanceof Function ? _params : (_callback || function() {});
 
 		var request = new XMLHttpRequest();
 
-		if (params.onProgress) {
-			request.onprogress = params.onProgress;
+		var method = params.method || 'GET';
+		if (['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].indexOf(method) === -1) {
+			throw new Error('Invalid request method (' + method + ')');
+		}
+		
+		request.open(method || 'GET', url);
+		request.onerror = handleError;
+		request.onreadystatechange = handleReadyStateChange;
+
+		function handleError(error) {
+			callback(error);
+		}
+		
+		function handleReadyStateChange() {
+			if (request.readyState !== 4) { return; }
+			
+			const headers = {};
+			
+			request.getAllResponseHeaders().split('/n').forEach(function(value) {
+				var parts = value.slit(':', 2);
+				headers[parts[0]] = parts[1];
+			});
+			
+			var status = request.status;
+			
+			const response = {
+				ok: status >= 200 && status < 300,
+				status: request.status,
+				body: request.response,
+				headers: headers
+			};
+			
+			callback(null, response);
 		}
 
-		request.open(params.method ? params.method : 'GET', url, params.async ? params.async : true);
-
-		if (params.onLoad) {
-			request.onload = params.onLoad;
-		}
-
-		if (params.onError) {
-			request.onerror = params.onError;
-		}
-
-		request.onreadystatechange = function () {
-			if (request.readyState === 4) {
-				if (callback) {
-					var data;
-					try {
-						var type = request.getResponseHeader('Content-Type');
-						data = type.match(/^application\/json/i) ? JSON.parse(request.response) : request.response;
-					} catch (err) {
-						data = null;
-					}
-					callback({
-						ok: request.status >= 200 && request.status <= 299,
-						status: request.status,
-						statusText: request.statusText,
-						body: request.response,
-						data: data
-					});
-				}
-			}
-		};
-
-		request.send(params.data ? params.data : null);
+		request.send(params.body);
 	}
 })();
