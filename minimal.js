@@ -68,28 +68,35 @@
 		}
 		
 		request.open(method || 'GET', url);
+		request.onerror = handleError;
+		request.onreadystatechange = handleReadyStateChange;
 
-		request.onreadystatechange = function () {
-			if (request.readyState === 4) {
-				if (callback) {
-					var data;
-					try {
-						var type = request.getResponseHeader('Content-Type');
-						data = type.match(/^application\/json/i) ? JSON.parse(request.response) : request.response;
-					} catch (err) {
-						data = null;
-					}
-					callback({
-						ok: request.status >= 200 && request.status <= 299,
-						status: request.status,
-						statusText: request.statusText,
-						body: request.response,
-						data: data
-					});
-				}
-			}
-		};
+		function handleError(error) {
+			callback(error);
+		}
+		
+		function handleReadyStateChange() {
+			if (request.readyState !== 4) { return; }
+			
+			const headers = {};
+			
+			request.getAllResponseHeaders().split('/n').forEach(function(value) {
+				var parts = value.slit(':', 2);
+				headers[parts[0]] = parts[1];
+			});
+			
+			var status = request.status;
+			
+			const response = {
+				ok: status >= 200 && status < 300,
+				status: request.status,
+				body: request.response,
+				headers: headers
+			};
+			
+			callback(null, response);
+		}
 
-		request.send(params.data ? params.data : null);
+		request.send(params.body);
 	}
 })();
