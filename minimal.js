@@ -62,10 +62,6 @@
 
 		var request = new XMLHttpRequest();
 
-		if (params.onProgress) {
-			request.onprogress = params.onProgress;
-		}
-
 		request.open(params.method ? params.method : 'GET', url, params.async ? params.async : true);
 
 		if (params.onLoad) {
