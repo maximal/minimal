@@ -83,7 +83,7 @@
 			const headers = {};
 			
 			request.getAllResponseHeaders().split('/n').forEach(function(value) {
-				var parts = value.slit(':', 2);
+				var parts = value.split(':', 2);
 				headers[parts[0]] = parts[1];
 			});
 			
