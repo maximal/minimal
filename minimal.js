@@ -62,7 +62,12 @@
 
 		var request = new XMLHttpRequest();
 
-		request.open(params.method ? params.method : 'GET', url, params.async ? params.async : true);
+		var method = params.method || 'GET';
+		if (['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].indexOf(method) === -1) {
+			throw new Error('Invalid request method (' + method + ')');
+		}
+		
+		request.open(method || 'GET', url);
 
 		if (params.onLoad) {
 			request.onload = params.onLoad;
