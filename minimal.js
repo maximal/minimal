@@ -50,7 +50,7 @@
 	 *
 	 * @param {String} url
 	 * @param {Object|Function} params
-	 * @param {Function} callback
+	 * @param {Function} [callback]
 	 * @author MaximAL
 	 * @author McTep
 	 */
