@@ -23,22 +23,35 @@
 	 *
 	 *
 	 * @param {Document|Element|NodeList} elements Элементы ДОМа
-	 * @param {String} eventName Название события (click, keypress и т. п.)
+	 * @param {String|String[]} eventName Название события (click, keypress и т. п.)
 	 * @param {EventListener|Function} callback Выполняемая функция
 	 *
 	 * @since 2016-10-24
 	 * @author MaximAL
 	 */
 	function on(elements, eventName, callback) {
+		if (eventName instanceof String) {
+			eventName = [eventName];
+		}
 		if (elements instanceof NodeList) {
 			for (var i in elements) {
 				if (!elements.hasOwnProperty(i)) {
 					continue;
 				}
-				elements[i].addEventListener(eventName, callback);
+				for (var j in eventName) {
+					if (!eventName.hasOwnProperty(j)) {
+						continue;
+					}
+					elements[i].addEventListener(eventName[j], callback);
+				}
 			}
 		} else {
-			elements.addEventListener(eventName, callback);
+			for (var e in eventName) {
+				if (!eventName.hasOwnProperty(e)) {
+					continue;
+				}
+				elements.addEventListener(eventName[e], callback);
+			}
 		}
 		// TODO: Может, сделать возможность передавать строку и сразу искать элементы?
 		// Кешировать селекторы, чи ну его?
