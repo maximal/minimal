@@ -30,7 +30,7 @@
 	 * @author MaximAL
 	 */
 	function on(elements, eventName, callback) {
-		if (eventName instanceof String) {
+		if (eventName instanceof String || typeof eventName === 'string') {
 			eventName = [eventName];
 		}
 		if (elements instanceof NodeList) {
