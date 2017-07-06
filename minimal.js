@@ -23,82 +23,114 @@
 	 *
 	 *
 	 * @param {Document|Element|NodeList} elements Элементы ДОМа
-	 * @param {String} eventName Название события (click, keypress и т. п.)
+	 * @param {String|String[]} eventName Название события (click, keypress и т. п.)
 	 * @param {EventListener|Function} callback Выполняемая функция
 	 *
 	 * @since 2016-10-24
 	 * @author MaximAL
 	 */
 	function on(elements, eventName, callback) {
+		if (eventName instanceof String || typeof eventName === 'string') {
+			eventName = [eventName];
+		}
 		if (elements instanceof NodeList) {
 			for (var i in elements) {
 				if (!elements.hasOwnProperty(i)) {
 					continue;
 				}
-				elements[i].addEventListener(eventName, callback);
+				for (var j in eventName) {
+					if (!eventName.hasOwnProperty(j)) {
+						continue;
+					}
+					elements[i].addEventListener(eventName[j], callback);
+				}
+			}
+		} else if (elements !== null) {
+			for (var e in eventName) {
+				if (!eventName.hasOwnProperty(e)) {
+					continue;
+				}
+				elements.addEventListener(eventName[e], callback);
 			}
 		} else {
-			elements.addEventListener(eventName, callback);
+			console.info('Info: no element for `' + eventName + '`event.');
 		}
-		// TODO: Может, сделать возможность передавать строку и сразу искать элементы?
-		// Кешировать селекторы, чи ну его?
 	}
-
 
 	/**
 	 * Сделать Аякс
 	 *
-	 * @param {String} url
-	 * @param {Object|Function} params
-	 * @param {Function} [callback]
-	 * @author MaximAL
-	 * @author McTep
+	 * @example
+	 * // GET
+	 * ajax('/api', function (response) {
+	 *     var data = response.data;
+	 *     // ...
+	 * }
+	 *
+	 * // PUT
+	 * ajax('/api', {method: 'PUT', data: {key: value}, function (response) {
+	 *     var data = response.data;
+	 *     // ...
+	 * }
+	 *
+	 *
+	 * @param {String} url Урл
+	 * @param {Object|Function} params Объект вида `{method: method, async: true, data: data}`
+	 * @param {Function|Object} [callback] Выполнить по завершению аякс-вызова
 	 */
-	function ajax(url, _params, _callback) {
+	function ajax(url, params, callback) {
 		if (!url) {
 			throw new Error('Error: `url` parameter is required!');
 		}
 
-		var params = _params instanceof Object ? _params : {};
-		var callback = _params instanceof Function ? _params : (_callback || function() {});
+		params = params || {};
+
+		if (params instanceof Function) {
+			callback = params;
+		}
 
 		var request = new XMLHttpRequest();
 
-		var method = params.method || 'GET';
-		if (['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].indexOf(method) === -1) {
-			throw new Error('Invalid request method (' + method + ')');
-		}
-		
-		request.open(method || 'GET', url);
-		request.onerror = handleError;
-		request.onreadystatechange = handleReadyStateChange;
-
-		function handleError(error) {
-			callback(error);
-		}
-		
-		function handleReadyStateChange() {
-			if (request.readyState !== 4) { return; }
-			
-			const headers = {};
-			
-			request.getAllResponseHeaders().split('/n').forEach(function(value) {
-				var parts = value.split(':', 2);
-				headers[parts[0]] = parts[1];
-			});
-			
-			var status = request.status;
-			
-			const response = {
-				ok: status >= 200 && status < 300,
-				status: request.status,
-				body: request.response,
-				headers: headers
-			};
-			
-			callback(null, response);
+		if (params.onProgress) {
+			request.onprogress = params.onProgress;
 		}
 
-		request.send(params.body);
+		request.open(params.method ? params.method : 'GET', url, params.async ? params.async : true);
+
+		if (params.onLoad) {
+			request.onload = params.onLoad;
+		}
+
+		if (params.onError) {
+			request.onerror = params.onError;
+		}
+
+		request.onreadystatechange = function () {
+			if (request.readyState === 4) {
+				if (callback) {
+					var data;
+					try {
+						var type = request.getResponseHeader('Content-Type');
+						data = type.match(/^application\/json/i) ? JSON.parse(request.response) : request.response;
+					} catch (err) {
+						data = null;
+					}
+					callback({
+						ok: request.status >= 200 && request.status <= 299,
+						status: request.status,
+						statusText: request.statusText,
+						body: request.response,
+						data: data
+					});
+				}
+			}
+		};
+
+		//request.setRequestHeader('Content-Type', 'multipart/form-data');
+		if (params.data) {
+			request.send(params.data instanceof String ? params.data : JSON.stringify(params.data));
+		} else {
+			request.send(null);
+		}
 	}
 })();
