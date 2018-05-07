@@ -33,7 +33,7 @@
 		if (eventName instanceof String || typeof eventName === 'string') {
 			eventName = [eventName];
 		}
-		if (elements instanceof NodeList) {
+		if (elements instanceof NodeList || elements instanceof Array) {
 			for (var i in elements) {
 				if (!elements.hasOwnProperty(i)) {
 					continue;
@@ -53,7 +53,7 @@
 				elements.addEventListener(eventName[e], callback);
 			}
 		} else {
-			console.info('Info: no element for `' + eventName + '`event.');
+			//console.info('Info: no element for `' + eventName + '`event.');
 		}
 	}
 
@@ -73,10 +73,18 @@
 	 *     // ...
 	 * }
 	 *
-	 *
 	 * @param {String} url Урл
 	 * @param {Object|Function} params Объект вида `{method: method, async: true, data: data}`
-	 * @param {Function|Object} [callback] Выполнить по завершению аякс-вызова
+	 * @param {String} params.method HTTP-метод
+	 * @param {String|Object} params.data Данные для передачи
+	 * @param {Boolean} [params.async] Асинхронный вызов?
+	 * @param {Function} [params.onLoad] Что вызвать при загрузке
+	 * @param {Function} [params.onProgress] Что вызвать при изменении прогресса
+	 * @param {Function} [params.onError] Что вызвать при ошибке
+	 * @param {Function} [callback] Выполнить по завершению аякс-вызова
+	 *
+	 * @since 2016-10-24
+	 * @author MaximAL
 	 */
 	function ajax(url, params, callback) {
 		if (!url) {
@@ -111,7 +119,9 @@
 					var data;
 					try {
 						var type = request.getResponseHeader('Content-Type');
-						data = type.match(/^application\/json/i) ? JSON.parse(request.response) : request.response;
+						data = type.match(/^application\/json/i) ?
+							JSON.parse(request.response.toString()) :
+							request.response;
 					} catch (err) {
 						data = null;
 					}
@@ -127,10 +137,32 @@
 		};
 
 		//request.setRequestHeader('Content-Type', 'multipart/form-data');
+		request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		if (params.data) {
-			request.send(params.data instanceof String ? params.data : JSON.stringify(params.data));
+			// String or JSON payload
+			//console.log(params.data instanceof String);
+			if (params.data instanceof String) {
+				request.send(params.data);
+			} else {
+				request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+				request.send(JSON.stringify(params.data));
+			}
 		} else {
 			request.send(null);
+		}
+	}
+
+	/**
+	 * Безопасный forEach
+	 * @since 2018-05-07
+	 * @author MaximAL
+	 */
+	function forEach(list, callback) {
+		for (var i in list) {
+			if (!list.hasOwnProperty(i)) {
+				continue;
+			}
+			callback(list[i], i);
 		}
 	}
 })();
