@@ -165,4 +165,40 @@
 			callback(list[i], i);
 		}
 	}
+
+	/**
+	 * Затормозить выполнение функции `callback`, чтобы она выполнялась не чаще раза в `limit` миллисекунд.
+	 *
+	 * @example
+	 * // При вводе адреса, получать координаты от геокодера и ставить метку на карте
+	 * // Но не обращаться к геокодеру слишком часто (максимум, один запрос в секунду)
+	 * on(inpAddress, 'input', throttle(1000, geocodeAndSetMapMarker));
+	 *
+	 * @param {Number} limit Ограничение частоты выполнения функции в миллисекундах
+	 * @param {Function} callback Функция
+	 * @returns {Function} Возвращает функцию, выполняемую не чаще раза в `limit` миллисекунд.
+	 *
+	 * @since 2018-10-11
+	 * @author MaximAL
+	 */
+	function throttle(limit, callback) {
+		let lastFunc;
+		let lastRan;
+		return function() {
+			const context = this;
+			const args = arguments;
+			if (!lastRan) {
+				callback.apply(context, args);
+				lastRan = Date.now();
+			} else {
+				clearTimeout(lastFunc);
+				lastFunc = setTimeout(function() {
+					if ((Date.now() - lastRan) >= limit) {
+						callback.apply(context, args);
+						lastRan = Date.now()
+					}
+				}, limit - (Date.now() - lastRan))
+			}
+		}
+	}
 })();
