@@ -45,7 +45,7 @@
 					elements[i].addEventListener(eventName[j], callback);
 				}
 			}
-		} else if (elements !== null) {
+		} else if (elements instanceof Node) {
 			for (var e in eventName) {
 				if (!eventName.hasOwnProperty(e)) {
 					continue;
