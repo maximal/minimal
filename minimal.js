@@ -76,7 +76,7 @@
 	 * @param {String} url Урл
 	 * @param {Object|Function} params Объект вида `{method: method, async: true, data: data}`
 	 * @param {String} params.method HTTP-метод
-	 * @param {String|Object} params.data Данные для передачи
+	 * @param {String|FormData|Object} params.data Данные для передачи
 	 * @param {Boolean} [params.async] Асинхронный вызов?
 	 * @param {Function} [params.onLoad] Что вызвать при загрузке
 	 * @param {Function} [params.onProgress] Что вызвать при изменении прогресса
@@ -139,7 +139,7 @@
 		//request.setRequestHeader('Content-Type', 'multipart/form-data');
 		request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		if (params.data) {
-			// String or JSON payload
+			// String, FormData or JSON payload
 			//console.log(params.data instanceof String);
 			if (params.data instanceof String || params.data instanceof FormData) {
 				request.send(params.data);
