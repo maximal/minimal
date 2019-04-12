@@ -141,7 +141,7 @@
 		if (params.data) {
 			// String or JSON payload
 			//console.log(params.data instanceof String);
-			if (params.data instanceof String) {
+			if (params.data instanceof String || params.data instanceof FormData) {
 				request.send(params.data);
 			} else {
 				request.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
